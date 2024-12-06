@@ -1,0 +1,193 @@
+#include "../s21_string.h"
+#include <string.h>
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
+
+#suite s21_sprintf 
+
+#define HELLO_STRING "hello"
+
+#test no_format_specification_small
+char s21_buff[10];
+char std_buff[10];
+
+s21_sprintf(s21_buff, "some");
+sprintf(std_buff, "some");
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test no_format_specification_medium
+char s21_buff[1024];
+char std_buff[1024];
+
+const char format[] = "Lorem Ipsum is simply dummy text of the printing"
+	" and typesetting industry. Lorem Ipsum has been the industry's"
+	" standard dummy text ever since the 1500s, when an unknown"
+	" printer took a galley of type and scrambled it to make a type"
+	" specimen book.";
+
+s21_sprintf(s21_buff, format);
+sprintf(std_buff, format);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test single_c_type
+char s21_buff[5];
+char std_buff[5];
+
+s21_sprintf(s21_buff, "%c", 'a');
+sprintf(std_buff, "%c", 'a');
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test single_c_type_non_printable
+char s21_buff[5];
+char std_buff[5];
+
+s21_sprintf(s21_buff, "%c", '\n');
+sprintf(std_buff, "%c", '\n');
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test single_c_type_null_char
+char s21_buff[5];
+char std_buff[5];
+
+s21_sprintf(s21_buff, "%c", '\0');
+sprintf(std_buff, "%c", '\0');
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test multiple_c_type
+char s21_buff[5];
+char std_buff[5];
+
+s21_sprintf(s21_buff, "%c%c%c", 'a', 'b', 'v');
+sprintf(std_buff, "%c%c%c", 'a', 'b', 'v');
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test c_type_with_normal_text
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "some %c text %c c=%c", 'a', 'b', 'v');
+sprintf(std_buff, "some %c text %c c=%c", 'a', 'b', 'v');
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test c_type_with_width
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "|%5c|", 'v');
+sprintf(std_buff, "|%5c|", 'v');
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+#test c_type_with_width_left_aligned
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "|%-5c|", 'v');
+sprintf(std_buff, "|%-5c|", 'v');
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test regular_s_type
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%s", HELLO_STRING);
+sprintf(std_buff, "%s", HELLO_STRING);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test s_type_with_width
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%10s", HELLO_STRING);
+sprintf(std_buff, "%10s", HELLO_STRING);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test s_type_with_width_left_aligned
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%-10s", HELLO_STRING);
+sprintf(std_buff, "%-10s", HELLO_STRING);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test s_type_with_small_precision
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%.3s", HELLO_STRING);
+sprintf(std_buff, "%.3s", HELLO_STRING);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test s_type_with_large_precision
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%.10s", HELLO_STRING);
+sprintf(std_buff, "%.10s", HELLO_STRING);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test s_type_with_width_and_small_precision
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%10.3s", HELLO_STRING);
+sprintf(std_buff, "%10.3s", HELLO_STRING);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test s_type_with_width_and_large_precision
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%10.11s", HELLO_STRING);
+sprintf(std_buff, "%10.11s", HELLO_STRING);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
+#test s_type_with_small_width_and_large_precision
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%1.11s", HELLO_STRING);
+sprintf(std_buff, "%1.11s", HELLO_STRING);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+#test s_type_with_zero_precision
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%.0s", HELLO_STRING);
+sprintf(std_buff, "%.0s", HELLO_STRING);
+
+ck_assert_str_eq(s21_buff, std_buff);
+
