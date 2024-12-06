@@ -113,6 +113,16 @@ sprintf(std_buff, "%s", HELLO_STRING);
 ck_assert_str_eq(s21_buff, std_buff);
 
 
+#test empty_s_type
+char s21_buff[20];
+char std_buff[20];
+
+s21_sprintf(s21_buff, "%s", "");
+sprintf(std_buff, "%s", "");
+
+ck_assert_str_eq(s21_buff, std_buff);
+
+
 #test s_type_with_width
 char s21_buff[20];
 char std_buff[20];
