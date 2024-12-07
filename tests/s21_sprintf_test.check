@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #suite s21_sprintf 
 
@@ -10,17 +11,22 @@
 
 #test no_format_specification_small
 char s21_buff[10];
+size_t s21_len;
 char std_buff[10];
+size_t std_len;
 
-s21_sprintf(s21_buff, "some");
-sprintf(std_buff, "some");
+s21_len = s21_sprintf(s21_buff, "some");
+std_len = sprintf(std_buff, "some");
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test no_format_specification_medium
 char s21_buff[1024];
+size_t s21_len;
 char std_buff[1024];
+size_t std_len;
 
 const char format[] = "Lorem Ipsum is simply dummy text of the printing"
 	" and typesetting industry. Lorem Ipsum has been the industry's"
@@ -28,167 +34,204 @@ const char format[] = "Lorem Ipsum is simply dummy text of the printing"
 	" printer took a galley of type and scrambled it to make a type"
 	" specimen book.";
 
-s21_sprintf(s21_buff, format);
-sprintf(std_buff, format);
+s21_len = s21_sprintf(s21_buff, format);
+std_len = sprintf(std_buff, format);
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test single_c_type
-char s21_buff[5];
-char std_buff[5];
+char s21_buff[10];
+char std_buff[10];
 
-s21_sprintf(s21_buff, "%c", 'a');
-sprintf(std_buff, "%c", 'a');
+size_t s21_len = s21_sprintf(s21_buff, "|%c|", 'a');
+size_t std_len = sprintf(std_buff, "|%c|", 'a');
 
 ck_assert_str_eq(s21_buff, std_buff);
-
+ck_assert_uint_eq(s21_len, std_len);
 
 #test single_c_type_non_printable
-char s21_buff[5];
-char std_buff[5];
+char s21_buff[10];
+char std_buff[10];
 
-s21_sprintf(s21_buff, "%c", '\n');
-sprintf(std_buff, "%c", '\n');
+size_t s21_len = s21_sprintf(s21_buff, "|%c|", '\n');
+size_t std_len = sprintf(std_buff, "|%c|", '\n');
 
 ck_assert_str_eq(s21_buff, std_buff);
-
+ck_assert_uint_eq(s21_len, std_len);
 
 #test single_c_type_null_char
-char s21_buff[5];
-char std_buff[5];
+char s21_buff[10];
+char std_buff[10];
 
-s21_sprintf(s21_buff, "%c", '\0');
-sprintf(std_buff, "%c", '\0');
+size_t s21_len = s21_sprintf(s21_buff, "|%c|", '\0');
+size_t std_len = sprintf(std_buff, "|%c|", '\0');
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test multiple_c_type
-char s21_buff[5];
-char std_buff[5];
+char s21_buff[10];
+char std_buff[10];
 
-s21_sprintf(s21_buff, "%c%c%c", 'a', 'b', 'v');
-sprintf(std_buff, "%c%c%c", 'a', 'b', 'v');
+size_t s21_len = s21_sprintf(s21_buff, "|%c%c%c|", 'a', 'b', 'v');
+size_t std_len = sprintf(std_buff, "|%c%c%c|", 'a', 'b', 'v');
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test multiple_c_type_with_separators
+char s21_buff[10];
+char std_buff[10];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%c|%c|%c|", 'a', 'b', 'v');
+size_t std_len = sprintf(std_buff, "|%c|%c|%c|", 'a', 'b', 'v');
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test c_type_with_normal_text
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "some %c text %c c=%c", 'a', 'b', 'v');
-sprintf(std_buff, "some %c text %c c=%c", 'a', 'b', 'v');
+size_t s21_len = s21_sprintf(s21_buff, "|some %c text %c c=%c|", 'a', 'b', 'v');
+size_t std_len = sprintf(std_buff, "|some %c text %c c=%c|", 'a', 'b', 'v');
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test c_type_with_width
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "|%5c|", 'v');
-sprintf(std_buff, "|%5c|", 'v');
+size_t s21_len = s21_sprintf(s21_buff, "|%5c|", 'v');
+size_t std_len = sprintf(std_buff, "|%5c|", 'v');
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
 
 #test c_type_with_width_left_aligned
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "|%-5c|", 'v');
-sprintf(std_buff, "|%-5c|", 'v');
+size_t s21_len = s21_sprintf(s21_buff, "|%-5c|", 'v');
+size_t std_len = sprintf(std_buff, "|%-5c|", 'v');
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test regular_s_type
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%s", HELLO_STRING);
-sprintf(std_buff, "%s", HELLO_STRING);
+size_t s21_len = s21_sprintf(s21_buff, "|%s|", HELLO_STRING);
+size_t std_len = sprintf(std_buff, "|%s|", HELLO_STRING);
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test empty_s_type
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%s", "");
-sprintf(std_buff, "%s", "");
+size_t s21_len = s21_sprintf(s21_buff, "%s", "");
+size_t std_len = sprintf(std_buff, "%s", "");
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test empty_s_type_with_borders
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%s|", "");
+size_t std_len = sprintf(std_buff, "|%s|", "");
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test s_type_with_width
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%10s", HELLO_STRING);
-sprintf(std_buff, "%10s", HELLO_STRING);
+size_t s21_len = s21_sprintf(s21_buff, "|%10s|", HELLO_STRING);
+size_t std_len = sprintf(std_buff, "|%10s|", HELLO_STRING);
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test s_type_with_width_left_aligned
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%-10s", HELLO_STRING);
-sprintf(std_buff, "%-10s", HELLO_STRING);
+size_t s21_len = s21_sprintf(s21_buff, "|%-10s|", HELLO_STRING);
+size_t std_len = sprintf(std_buff, "|%-10s|", HELLO_STRING);
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test s_type_with_small_precision
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%.3s", HELLO_STRING);
-sprintf(std_buff, "%.3s", HELLO_STRING);
+size_t s21_len = s21_sprintf(s21_buff, "|%.3s|", HELLO_STRING);
+size_t std_len = sprintf(std_buff, "|%.3s|", HELLO_STRING);
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test s_type_with_large_precision
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%.10s", HELLO_STRING);
-sprintf(std_buff, "%.10s", HELLO_STRING);
+size_t s21_len = s21_sprintf(s21_buff, "|%.10s|", HELLO_STRING);
+size_t std_len = sprintf(std_buff, "|%.10s|", HELLO_STRING);
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test s_type_with_width_and_small_precision
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%10.3s", HELLO_STRING);
-sprintf(std_buff, "%10.3s", HELLO_STRING);
+size_t s21_len = s21_sprintf(s21_buff, "|%10.3s|", HELLO_STRING);
+size_t std_len = sprintf(std_buff, "|%10.3s|", HELLO_STRING);
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test s_type_with_width_and_large_precision
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%10.11s", HELLO_STRING);
-sprintf(std_buff, "%10.11s", HELLO_STRING);
+size_t s21_len = s21_sprintf(s21_buff, "|%10.11s|", HELLO_STRING);
+size_t std_len = sprintf(std_buff, "|%10.11s|", HELLO_STRING);
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
 
 
 #test s_type_with_small_width_and_large_precision
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%1.11s", HELLO_STRING);
-sprintf(std_buff, "%1.11s", HELLO_STRING);
+s21_sprintf(s21_buff, "|%1.11s|", HELLO_STRING);
+sprintf(std_buff, "|%1.11s|", HELLO_STRING);
 
 ck_assert_str_eq(s21_buff, std_buff);
 
@@ -196,8 +239,434 @@ ck_assert_str_eq(s21_buff, std_buff);
 char s21_buff[20];
 char std_buff[20];
 
-s21_sprintf(s21_buff, "%.0s", HELLO_STRING);
-sprintf(std_buff, "%.0s", HELLO_STRING);
+size_t s21_len = s21_sprintf(s21_buff, "%1.11s", HELLO_STRING);
+size_t std_len = sprintf(std_buff, "%1.11s", HELLO_STRING);
 
 ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test regular_d
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "%d", 12345);
+size_t std_len = sprintf(std_buff, "%d", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_small_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "%1d", 12345);
+size_t std_len = sprintf(std_buff, "%1d", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_large_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "%10d", 12345);
+size_t std_len = sprintf(std_buff, "%10d", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_small_precision
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%.1d|", 12345);
+size_t std_len = sprintf(std_buff, "|%.1d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_precision
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%.0d|", 12345);
+size_t std_len = sprintf(std_buff, "|%.0d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_precision_set_witout_value
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%.d|", 12345);
+size_t std_len = sprintf(std_buff, "|%.d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_small_precision_large_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%10.3d|", 12345);
+size_t std_len = sprintf(std_buff, "|%10.3d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_large_precision_large_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%10.10d|", 12345);
+size_t std_len = sprintf(std_buff, "|%10.10d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_large_precision_small_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%3.10d|", 12345);
+size_t std_len = sprintf(std_buff, "|%3.10d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_with_zero_precision
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%.0d|", 0);
+size_t std_len = sprintf    (std_buff, "|%.0d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_with_precision
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%.5d|", 0);
+size_t std_len = sprintf    (std_buff, "|%.5d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_with_one_precision
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%.1d|", 0);
+size_t std_len = sprintf    (std_buff, "|%.1d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_large_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%10d|", 0);
+size_t std_len = sprintf    (std_buff, "|%10d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_small_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%1d|", 0);
+size_t std_len = sprintf    (std_buff, "|%1d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_zero_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%0d|", 0);
+size_t std_len = sprintf    (std_buff, "|%0d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_zero_width_plus_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%+0d|", 0);
+size_t std_len = sprintf    (std_buff, "|%+0d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_zero_width_space_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|% 0d|", 0);
+size_t std_len = sprintf    (std_buff, "|% 0d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_zero_precision_space_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|% .0d|", 0);
+size_t std_len = sprintf    (std_buff, "|% .0d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_zero_precision_plus_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%+.0d|", 0);
+size_t std_len = sprintf    (std_buff, "|%+.0d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_one_precision_space_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|% .1d|", 0);
+size_t std_len = sprintf    (std_buff, "|% .1d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_one_precision_space_flag_and_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|% 10.1d|", 0);
+size_t std_len = sprintf    (std_buff, "|% 10.1d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_one_precision_space_and_plus_flags_and_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|% +10.1d|", 0);
+size_t std_len = sprintf    (std_buff, "|% +10.1d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_flag_ignored_with_precision
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%09.3d|", 12);
+size_t std_len = sprintf    (std_buff, "|%09.3d|", 12);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+#test d_negative_value_large_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%10d|", -12345);
+size_t std_len = sprintf(std_buff, "|%10d|", -12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_negative_value_with_precision
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%.5d|", -12345);
+size_t std_len = sprintf(std_buff, "|%.5d|", -12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_negative_value_large_precision_small_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%3.10d|", -12345);
+size_t std_len = sprintf(std_buff, "|%3.10d|", -12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_value_with_plus_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%+10d|", 12345);
+size_t std_len = sprintf(std_buff, "|%+10d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_value_with_space_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|% 10d|", 12345);
+size_t std_len = sprintf(std_buff, "|% 10d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_value_with_zero_flag_and_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%010d|", 12345);
+size_t std_len = sprintf(std_buff, "|%010d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_value_with_zero_flag_and_large_precision
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%010.8d|", 12345);
+size_t std_len = sprintf(std_buff, "|%010.8d|", 12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_negative_value_with_zero_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%010d|", -12345);
+size_t std_len = sprintf(std_buff, "|%010d|", -12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+#test d_large_positive_with_zero_flag
+char s21_buff[50];
+char std_buff[50];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%020d|", INT_MAX);
+size_t std_len = sprintf(std_buff, "|%020d|", INT_MAX);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+#test d_large_negative_with_zero_flag
+char s21_buff[50];
+char std_buff[50];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%020d|", INT_MIN);
+size_t std_len = sprintf(std_buff, "|%020d|", INT_MIN);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_small_negative_with_zero_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%010d|", -1);
+size_t std_len = sprintf(std_buff, "|%010d|", -1);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_with_zero_flag_and_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%010d|", 0);
+size_t std_len = sprintf(std_buff, "|%010d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_zero_value_with_space_flag_and_width
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|% 10d|", 0);
+size_t std_len = sprintf(std_buff, "|% 10d|", 0);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+#test d_positive_value_with_zero_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%010d|", 1);
+size_t std_len = sprintf(std_buff, "|%010d|", 1);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+#test d_negative_value_no_zero_flag
+char s21_buff[20];
+char std_buff[20];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%-10d|", -12345);
+size_t std_len = sprintf(std_buff, "|%-10d|", -12345);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
+
+#test d_large_negative_with_precision
+char s21_buff[50];
+char std_buff[50];
+
+size_t s21_len = s21_sprintf(s21_buff, "|%.10d|", INT_MIN);
+size_t std_len = sprintf(std_buff, "|%.10d|", INT_MIN);
+
+ck_assert_str_eq(s21_buff, std_buff);
+ck_assert_uint_eq(s21_len, std_len);
+
 

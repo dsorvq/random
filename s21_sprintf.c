@@ -241,6 +241,7 @@ static s21_size_t integer_to_string(long long src, char* dst,
   s21_size_t len = 0;
   if (src < 0) {
     positive_sign_symbol = '-';
+    src = -src;
   } 
 
   do {
@@ -255,10 +256,9 @@ static s21_size_t integer_to_string(long long src, char* dst,
   return len;
 }
 
-// TODO: Add # flag
 static s21_size_t unsigned_to_string(long unsigned src, char* dst,
                                      long unsigned base, 
-                                     bool prefix, type_t type) {
+                                     bool prefix) {
   static const char digits[] = "0123456789ABCDEF";
   s21_size_t len = 0;
   do {
@@ -266,65 +266,102 @@ static s21_size_t unsigned_to_string(long unsigned src, char* dst,
     src /= base;
   } while (src != 0);
 
-  if (prefix && (type == TYPE_x || type == TYPE_X)) {
-    dst[len++] = '0'; 
+  if (prefix && (base == 16)) {
     dst[len++] = 'X'; 
-  } else if (prefix && (type == TYPE_o)) {
-     
+    dst[len++] = '0'; 
+  } else if (prefix && (base == 8)) {
+    dst[len++] = '0'; 
   }
 
   reverse_string(dst, 0, len);
   return len;
 }
 
+/*
+static void print_integer_zero(char* dst, s21_size_t* i,
+                       format_specification_t* specs) {
+  s21_size_t number_of_zeros = 1;
+  s21_size_t addition = 
+    (specs->flags.blank_positive || specs->flags.always_sign);
+
+  if (specs->precision.is_precision_set) {
+    number_of_zeros = specs->precision.precision;
+  } else if (specs->flags.zero_padding && !specs->flags.left_justify){
+    if (specs->width > 0) {
+      number_of_zeros = specs->width;
+      if (addition > 0) {
+        number_of_zeros = 
+          (number_of_zeros == 1 ? 1 : number_of_zeros - 1);       
+      }
+    }
+  }
+  s21_size_t total_len = number_of_zeros + addition;
+  
+  s21_size_t offest = 0;
+  if (!specs->flags.left_justify && total_len < specs->width) {
+    offest = specs->width - total_len;
+  }
+
+  if (specs->flags.always_sign)  {
+    dst[*(i++)] = '+';
+  } else if (specs->flags.blank_positive) {
+    dst[*(i++)] = ' ';
+  }
+}
+*/
+
 static void print_number(char* dst, s21_size_t* i, char* number,
                          s21_size_t number_len,
                          format_specification_t* specs) {
-  s21_size_t number_len_with_precision = number_len;
-  if (specs->precision.is_precision_set) {
-    s21_size_t additional = isdigit(number[0]) ? 0 : 1;
-    if (number_len < specs->precision.precision + additional) {
-      number_len_with_precision = specs->precision.precision + additional;
+  s21_size_t prefix_len = (!isdigit(number[0]) || number[0] == '0') ? (isdigit(number[1]) ? 1 : 2) : 0;
+
+  number_len = number_len - prefix_len;
+  s21_size_t remaining_precision = 0;
+  if (specs->precision.is_precision_set && specs->precision.precision > number_len) {
+    remaining_precision = specs->precision.precision - number_len;
+  }
+  s21_size_t total_len = prefix_len + remaining_precision + number_len;
+
+  s21_size_t offset = 0;
+  int fill_symbol = ' ';
+  if (specs->width > total_len) {
+    if (!specs->precision.is_precision_set && 
+        !specs->flags.left_justify && specs->flags.zero_padding) {
+      fill_symbol = '0';
+      remaining_precision = specs->width - prefix_len - number_len;
+      total_len = prefix_len + remaining_precision + number_len;
+    } else {
+      offset = specs->width - total_len;
     }
+    memset(dst + *i, fill_symbol, specs->width);
   }
 
-  s21_size_t i_temp = *i;
-  if (specs->width > number_len_with_precision) {
-    char fill_char = ' ';
-    if (specs->flags.zero_padding && !specs->flags.left_justify 
-        && !specs->precision.is_precision_set) {
-      fill_char = '0';
-      if (!isdigit(number[0])) {
-        dst[i_temp++] = *(number++);
-        --number_len;
-      }
-    }
-    memset(dst + i_temp, fill_char, specs->width);
-  }
-
+  /* 
+    RIGHT_JUSTIFY:
+    |x000001234|   (zero_flag)        |prefix:rem_precision:number|
+    |   x001234|   (!zero_flag)       |offset:prefix:rem_precision:number|
+    
+    LEFT_JUSTIFY:
+    |x001234   |   (width  >  precision)
+    |x000001234|   (width  <= precision)
+  */
   if (!specs->flags.left_justify) {
-    s21_size_t begin_offset = 0;
-    if (specs->width > number_len_with_precision) {
-      begin_offset = specs->width - number_len_with_precision;
+    if (fill_symbol == '0') {
+      strncpy(dst + *i, number, prefix_len); 
+      memset(dst + *i + prefix_len, '0', remaining_precision);
+      strncpy(dst + *i + prefix_len + remaining_precision, number + prefix_len, number_len);
+    } else {
+      strncpy(dst + *i + offset, number, prefix_len); 
+      memset(dst + *i + offset + prefix_len, '0', remaining_precision);
+      strncpy(dst + *i + offset + prefix_len + remaining_precision, number + prefix_len, number_len);
     }
-    i_temp += begin_offset;
+  } else {
+    strncpy(dst + *i, number, prefix_len);
+    memset(dst + *i + prefix_len, '0', remaining_precision);
+    strncpy(dst + *i + prefix_len + remaining_precision, number + prefix_len, number_len);
   }
 
-  if (!isdigit(number[0])) {
-    dst[i_temp++] = *(number++);
-    --number_len;
-  }
-  s21_size_t precision_lacking = 0;
-  if (specs->precision.is_precision_set && 
-      specs->precision.precision > number_len) {
-    precision_lacking = specs->precision.precision - number_len;
-    memset(dst + i_temp, '0', precision_lacking);
-    i_temp += precision_lacking;
-  }
-  strncpy(dst + i_temp, number, number_len);
-
-  *i += (specs->width > number_len_with_precision ? 
-      specs->width : number_len_with_precision);
+  *i += (specs->width > total_len ? specs->width : total_len);
 }
 
 static void print_integer(char* dst, s21_size_t* i, long value,
@@ -351,11 +388,14 @@ static void print_unsigned(char* dst, s21_size_t* i, long unsigned value,
   long unsigned base = 10;
   if (specs->type == TYPE_o) {
     base = 8;
+    if (specs->flags.use_prefix && specs->precision.is_precision_set && specs->precision.precision == 0) {
+      // extremely weird edge case
+      specs->precision.precision = 1;
+    }
   } else if (specs->type == TYPE_x || specs->type == TYPE_X) {
     base = 16;
   }
-  // TODO: add # flag
-  number_len = unsigned_to_string(value, number, base, false, specs->type);
+  number_len = unsigned_to_string(value, number, base, specs->flags.use_prefix);
   // TODO: if specs->type == TYPE-x: to_lower(number)
   // currently to_lower is not implemented
   print_number(dst, i, number, number_len, specs);
